@@ -1,0 +1,36 @@
+name: React Todo CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React application
+        run: npm run build
+
+      - name: Build Docker image
+        run: docker build -t react-todo:latest .
+
+      - name: Test Docker container
+        run: |
+          docker run -d --name react-todo-test -p 8080:80 react-todo:latest
+          sleep 5
+          curl --fail http://localhost:8080
+          docker stop react-todo-test
